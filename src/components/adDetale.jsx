@@ -28,6 +28,7 @@ const AdDetails = ({ selectedAd, closeAd }) => {
             <button className="btn btn-primary" onClick={closeAd}>Назад к списку</button>
           </div>
         </div>
+        
       </div>
     </div>
   );
