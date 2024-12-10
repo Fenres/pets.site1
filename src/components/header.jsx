@@ -4,13 +4,14 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import logo from '../png/logo.jpg';
 
 const Header = () => {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); // Controls the login/registration modal
   const [isLoginTabActive, setIsLoginTabActive] = useState(true);
+  const [forgotPasswordModal, setForgotPasswordModal] = useState(false); // Controls the forgot password modal
   
   const location = useLocation();
 
   // Login Form state
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPhone, setLoginPhone] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
   // Register Form state
@@ -29,17 +30,22 @@ const Header = () => {
   // Handle tab switch between login and registration
   const handleTabSwitch = (isLogin) => setIsLoginTabActive(isLogin);
 
-  // Form submission handlers
+  // Handle the "Forgot Password" modal
+  const handleForgotPassword = () => setForgotPasswordModal(true);
+
+  // Handle login form submission
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    console.log("Login email:", loginEmail, "Password:", loginPassword);
+    console.log("Login phone:", loginPhone, "Password:", loginPassword);
   };
 
+  // Handle register form submission
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
     console.log("Register info:", registerName, registerPhone, registerEmail);
   };
 
+  // Handle search form submission
   const handleSearch = (e) => {
     e.preventDefault();
   };
@@ -112,10 +118,10 @@ const Header = () => {
         </div>
       </nav>
 
- 
+      {/* Main Modal (Login/Registration) */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Авторизация</Modal.Title>
+          <Modal.Title>{isLoginTabActive ? 'Авторизация' : 'Регистрация'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <ul className="nav nav-tabs" id="authTabs" role="tablist">
@@ -140,11 +146,11 @@ const Header = () => {
             {isLoginTabActive ? (
               <form onSubmit={handleLoginSubmit}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
+                  <Form.Label>Телефон</Form.Label>
                   <Form.Control
-                    type="email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
+                    type="tel"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value)}
                     required
                   />
                 </Form.Group>
@@ -158,6 +164,9 @@ const Header = () => {
                   />
                 </Form.Group>
                 <Button type="submit" className="w-100">Войти</Button>
+                <div className="mt-3">
+                  <a href="#" onClick={handleForgotPassword}>Забыли пароль?</a>
+                </div>
               </form>
             ) : (
               <form onSubmit={handleRegisterSubmit}>
@@ -215,6 +224,26 @@ const Header = () => {
               </form>
             )}
           </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Forgot Password Modal */}
+      <Modal show={forgotPasswordModal} onHide={() => setForgotPasswordModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Восстановление пароля</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Введите свой телефон</Form.Label>
+              <Form.Control
+                type="tel"
+                placeholder="Телефон"
+                required
+              />
+            </Form.Group>
+            <Button type="submit" className="w-100">Отправить восстановление</Button>
+          </Form>
         </Modal.Body>
       </Modal>
     </div>
