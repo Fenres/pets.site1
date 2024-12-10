@@ -52,8 +52,13 @@ function CardPats() {
     };
 
     if (isLoading) {
-        return <div>Loading...</div>;
-    }
+        return (
+          <div className="loader ">
+            <div className=" text-center tst  bg-success bg-opacity-25 w-100">Загрузка...</div>
+          </div>
+        );
+      }
+    
 
     return (
         <div>
