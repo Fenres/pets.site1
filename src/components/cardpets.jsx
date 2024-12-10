@@ -1,116 +1,59 @@
-import React, { useState } from 'react';
-import cat from '../png/кошка.jpg';
-import goat from '../png/коза.jpeg';
-import dog1 from '../png/собака1.jpg';
-import hamster from '../png/хомяк.jpg';
-import parrot from '../png/попугай.jpg';
-import rat from '../png/крыса.jpg';
+import React, { useState, useEffect } from 'react';
 import Card from './propsCard';
-import AdDetails from './adDetale'; 
-
-const pet = [
-    {
-        "id": 26,
-                "phone": "+37377765735",
-                "name": "Иван",
-                "kind": "кот",
-                "photos": "/storage/images/vvCsfFK3CrF7s1W7SnrXbJfM5MwVj1FliqdwMEfs.png",
-                "description": "хороший",
-                "mark": "вц123",
-                "district": "Медвежий угол",
-                "date": "2023-03-05",
-                "registred": true
-    },
-    {
-        "id": 26,
-        "phone": "+37377765735",
-        "name": "Иван",
-        "kind": "кот",
-        "photos": "/storage/images/vvCsfFK3CrF7s1W7SnrXbJfM5MwVj1FliqdwMEfs.png",
-        "description": "хороший",
-        "mark": "вц123",
-        "district": "Медвежий угол",
-        "date": "2023-03-05",
-        "registred": true
-    },
-    {
-        "id": 26,
-        "phone": "+37377765735",
-        "name": "Иван",
-        "kind": "кот",
-        "photos": "/storage/images/vvCsfFK3CrF7s1W7SnrXbJfM5MwVj1FliqdwMEfs.png",
-        "description": "хороший",
-        "mark": "вц123",
-        "district": "Медвежий угол",
-        "date": "2023-03-05",
-        "registred": true
-    },
-    {
-        "id": 26,
-        "phone": "+37377765735",
-        "name": "Иван",
-        "kind": "кот",
-        "photos": "/storage/images/vvCsfFK3CrF7s1W7SnrXbJfM5MwVj1FliqdwMEfs.png",
-        "description": "хороший",
-        "mark": "вц123",
-        "district": "Медвежий угол",
-        "date": "2023-03-05",
-        "registred": true
-    },
-    {
-        "id": 26,
-        "phone": "+37377765735",
-        "name": "Иван",
-        "kind": "кот",
-        "photos": "/storage/images/vvCsfFK3CrF7s1W7SnrXbJfM5MwVj1FliqdwMEfs.png",
-        "description": "хороший",
-        "mark": "вц123",
-        "district": "Медвежий угол",
-        "date": "2023-03-05",
-        "registred": true
-    },
-    {
-        "id": 26,
-        "phone": "+37377765735",
-        "name": "Иван",
-        "kind": "кот",
-        "photos": "/storage/images/vvCsfFK3CrF7s1W7SnrXbJfM5MwVj1FliqdwMEfs.png",
-        "description": "хороший",
-        "mark": "вц123",
-        "district": "Медвежий угол",
-        "date": "2023-03-05",
-        "registred": true
-    }
-];
-
-// Функция для сортировки по дате в убывающем порядке
-const sortedAnimals = pet.sort((a, b) => new Date(b.date) - new Date(a.date));
+import AdDetails from './adDetale';
 
 function CardPats() {
-    const [currentPage, setCurrentPage] = useState(1);
-    const cardsPerPage = 6; // Количество карточек на одной странице
-    const [selectedAnimal, setSelectedAnimal] = useState(null); // Состояние для выбранного животного
+    const [pets, setPets] = useState([]);  // Initialize with an empty array
+    const [isLoading, setIsLoading] = useState(true);  // Loading state
+    const [selectedAnimal, setSelectedAnimal] = useState(null); // State for selected animal card
+    const [currentPage, setCurrentPage] = useState(1);  // State for current page
+    const cardsPerPage = 6;  // Number of cards per page
 
-    // Индексы карточек для текущей страницы
+    // Fetch the data from the API
+    useEffect(() => {
+        const fetchPetsData = async () => {
+            try {
+                const response = await fetch('https://pets.сделай.site/api/pets');
+                const data = await response.json();
+                
+                // Debugging - log the data to ensure it's correct
+                console.log('Fetched pets data:', data);
+
+                if (data && data.data && data.data.orders) {
+                    setPets(data.data.orders);  // Assuming the API returns an array of pets under data.data.orders
+                }
+            } catch (error) {
+                console.error('Error fetching pet data:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchPetsData();
+    }, []);
+
+    // Pagination logic
     const indexOfLastCard = currentPage * cardsPerPage;
     const indexOfFirstCard = indexOfLastCard - cardsPerPage;
-    const currentCards = sortedAnimals.slice(indexOfFirstCard, indexOfLastCard);
+    const currentCards = pets.length ? pets.slice(indexOfFirstCard, indexOfLastCard) : [];  // Ensure pets is always an array
+    const totalPages = Math.ceil(pets.length / cardsPerPage);
 
-    // Количество страниц
-    const totalPages = Math.ceil(sortedAnimals.length / cardsPerPage);
-
-    // Функции для смены страниц
+    // Function to change page
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-    // Функция для открытия карточки питомца
+    // Function to open animal card details
     const openAnimalCard = (animal) => {
         setSelectedAnimal(animal);
     };
 
-    // Функция для возврата к списку
+    // Function to close the animal card details
     const closeAnimalCard = () => {
         setSelectedAnimal(null);
     };
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div>
@@ -118,16 +61,18 @@ function CardPats() {
                 <AdDetails selectedAd={selectedAnimal} closeAd={closeAnimalCard} />
             ) : (
                 <>
-                    <div>
-                        
-                        <div className="d-flex flex-wrap justify-content-center">
-                            {currentCards.map(pet => (
+                    <div className="d-flex flex-wrap justify-content-center">
+                        {currentCards.length > 0 ? (
+                            currentCards.map(pet => (
                                 <Card key={pet.id} pet={pet} onClick={openAnimalCard} />
-                            ))}
-                        </div>
+                            ))
+                        ) : (
+                            <p>No pets available.</p>
+                        )}
+                    </div>
 
-
-                        {/* Пагинация */}
+                    {/* Pagination */}
+                    {totalPages > 1 && (
                         <nav aria-label="pagination" className="m-auto">
                             <ul className="pagination pagination-lg justify-content-center">
                                 {Array.from({ length: totalPages }, (_, index) => (
@@ -143,7 +88,7 @@ function CardPats() {
                                 ))}
                             </ul>
                         </nav>
-                    </div>
+                    )}
                 </>
             )}
         </div>

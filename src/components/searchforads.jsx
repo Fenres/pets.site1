@@ -1,89 +1,54 @@
-import React, { useState } from "react";
-import cat from '../png/кошка.jpg';
-import goat from '../png/коза.jpeg';
-import dog1 from '../png/собака1.jpg';
-import hamster from '../png/хомяк.jpg';
-import parrot from '../png/попугай.jpg';
-import rat from '../png/крыса.jpg';
+import React, { useState, useEffect } from "react";
 import Card from './propsCard';
-import AdDetails from './adDetale'; 
+import AdDetails from './adDetale';
 
 const Searchforads = () => {
-  const [pet] = useState([
-    {
-      id: 14,
-      type: 'Кошка',
-      description: 'Потерялась кошка, пушистая, серая. Любит играть, ласковая.',
-      chip: 'ca-001-spb',
-      district: 'Василиостровский',
-      date: '24-03-2020',
-      src: cat
-    },
-    {
-      id: 18,
-      type: 'Коза',
-      description: 'Потерялась коза, последний раз видели в здании Московского вокзала г. Санкт-Петербург. Коза белая, пуховая.',
-      chip: 'go-011-spb',
-      district: 'Центральный',
-      date: '14-03-2022',
-      src: goat
-    },
-    {
-      id: 22,
-      type: 'Собака',
-      description: 'Потерялась собака, больших размеров, коричневого цвета. Отзывчивая, дружелюбная.',
-      chip: 'dog-123-msk',
-      district: 'Московский',
-      date: '01-04-2023',
-      src: dog1
-    },
-    {
-      id: 25,
-      type: 'Хомяк',
-      description: 'Сбежал хомяк, маленький, серый. Любит семечки.',
-      chip: '(нет)',
-      district: 'Фрунзенский',
-      date: '10-05-2023',
-      src: hamster
-    },
-    {
-      id: 28,
-      type: 'Попугай',
-      description: 'Улетел попугай, зеленый, с красной грудкой. Говорит "Привет!".',
-      chip: '(нет)',
-      district: 'Адмиралтейский',
-      date: '20-06-2023',
-      src: parrot
-    },
-    {
-      id: 31,
-      type: 'Крыса',
-      description: 'Сбежала декоративная крыса, белая, с розовыми ушками. Очень дружелюбная.',
-      chip: '(нет)',
-      district: 'Выборгский',
-      date: '25-07-2023',
-      src: rat
-    },
-  ]);
-
+  const [pets, setPets] = useState([]); // Для хранения всех объявлений
+  const [filteredAds, setFilteredAds] = useState([]); // Для хранения отфильтрованных объявлений
   const [regionInput, setRegionInput] = useState("");
+  const [isLoading, setIsLoading] = useState(true);  // Loading state
   const [animalTypeInput, setAnimalTypeInput] = useState("");
-  const [filteredAds, setFilteredAds] = useState(pet);
+  const [selectedAd, setSelectedAd] = useState(null); // Для выбранного объявления
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedAd, setSelectedAd] = useState(null); // Manage selectedAd here
-
   const adsPerPage = 9;
 
+  // Загружаем данные с API
+  useEffect(() => {
+    const fetchPetsData = async () => {
+        try {
+            const response = await fetch('https://pets.сделай.site/api/pets');
+            const data = await response.json();
+            
+            // Debugging - log the data to ensure it's correct
+            console.log('Fetched pets data:', data);
+
+            if (data && data.data && data.data.orders) {
+                setPets(data.data.orders);  // Assuming the API returns an array of pets under data.data.orders
+                setFilteredAds(data.data.orders);  // Initially, set filtered ads to all pets
+            }
+        } catch (error) {
+            console.error('Error fetching pet data:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    fetchPetsData();
+  }, []);
+
+  // Функция для фильтрации объявлений по району и типу животного
   const searchAds = () => {
-    const filtered = pet.filter((pet) => {
+    const filtered = pets.filter((pet) => {
       const matchesRegion = pet.district.toLowerCase().includes(regionInput.toLowerCase());
-      const matchesAnimalType = pet.type.toLowerCase().includes(animalTypeInput.toLowerCase());
+      const matchesAnimalType = pet.kind.toLowerCase().includes(animalTypeInput.toLowerCase());
       return matchesRegion && matchesAnimalType;
     });
+    console.log('Отфильтрованные объявления:', filtered); // Проверим результат фильтрации
     setFilteredAds(filtered);
-    setCurrentPage(1);  // Reset to the first page after search
+    setCurrentPage(1);  // Сбросить на первую страницу после поиска
   };
 
+  // Пагинация
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const indexOfLastAd = currentPage * adsPerPage;
@@ -92,19 +57,19 @@ const Searchforads = () => {
 
   const totalPages = Math.ceil(filteredAds.length / adsPerPage);
 
-  // Function to close the selected ad
+  // Функция для закрытия выбранного объявления
   const closeAd = () => {
     setSelectedAd(null);
   };
 
-  // Function to select an ad (sets the selectedAd)
+  // Функция для выбора объявления
   const selectAd = (ad) => {
     setSelectedAd(ad);
   };
 
   return (
     <div>
-      {/* Search panel */}
+      {/* Панель поиска */}
       <div className="search-box text-center text-white bg-primary me-2 p-2">
         <h3>Поиск</h3>
         <div className="d-flex flex-wrap justify-content-center">
@@ -126,13 +91,13 @@ const Searchforads = () => {
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Основное содержимое */}
       <div>
         {selectedAd ? (
-          <AdDetails selectedAd={selectedAd} closeAd={closeAd} /> // Pass selectedAd as a prop to AdDetails
+          <AdDetails selectedAd={selectedAd} closeAd={closeAd} /> // Передаем выбранное объявление в AdDetails
         ) : (
           <>
-            {/* List of ads */}
+            {/* Список объявлений */}
             <div className="d-flex flex-wrap justify-content-center">
               {filteredAds.length === 0 ? (
                 <p className="text-center" style={{ height: '570px' }}>Объявлений не найдено.</p>
@@ -141,13 +106,13 @@ const Searchforads = () => {
                   <Card
                     key={pet.id}
                     pet={pet}
-                    onClick={() => selectAd(pet)}  // Pass the onClick handler to Card
+                    onClick={() => selectAd(pet)}  // Передаем функцию выбора объявления
                   />
                 ))
               )}
             </div>
 
-            {/* Pagination */}
+            {/* Пагинация */}
             {filteredAds.length > 0 && (
               <nav aria-label="pagination" className="m-auto">
                 <ul className="pagination pagination-lg justify-content-center">
