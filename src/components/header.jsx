@@ -1,141 +1,59 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Button, Form, Modal, Alert } from 'react-bootstrap';
+import { useAuth } from './AuthContext'; // Импортируем хук для работы с контекстом
 import logo from '../png/logo.jpg';
 
 const Header = () => {
-  const [showModal, setShowModal] = useState(false); // Controls the login/registration modal
+  const [showModal, setShowModal] = useState(false);
   const [isLoginTabActive, setIsLoginTabActive] = useState(true);
-  const [forgotPasswordModal, setForgotPasswordModal] = useState(false); // Controls the forgot password modal
-  
-  const location = useLocation();
+  const [errorMessages, setErrorMessages] = useState([]);
+  const [isRegistered, setIsRegistered] = useState(false);
 
-  // Login Form state
-  const [loginPhone, setLoginPhone] = useState("");
+  const { authToken, setAuthToken } = useAuth(); // Получаем токен из контекста и функцию для его обновления
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
-  // Register Form state
   const [registerName, setRegisterName] = useState("");
   const [registerPhone, setRegisterPhone] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState("");
-  const [registerConfirm, setRegisterConfirm] = useState(false); // Checkbox for consent
-  
-  const [errorMessages, setErrorMessages] = useState([]); // To store validation errors
+  const [registerConfirm, setRegisterConfirm] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
-  // Handle opening and closing the modal
-  const handleCloseModal = () => setShowModal(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setLoginEmail("");
+    setLoginPassword("");
+    setRegisterName("");
+    setRegisterPhone("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setRegisterPasswordConfirm("");
+    setRegisterConfirm(false);
+    setErrorMessages([]);
+    setIsRegistered(false);
+  };
+
   const handleShowModal = () => setShowModal(true);
 
-  // Handle tab switch between login and registration
   const handleTabSwitch = (isLogin) => setIsLoginTabActive(isLogin);
 
-  // Form Validation for Registration
-  const validateRegistration = () => {
-    const errors = [];
-
-    const nameRegex = /^[А-Яа-яЁё\s-]+$/;
-    if (!nameRegex.test(registerName)) {
-      errors.push('Имя должно содержать только кириллицу, пробелы и дефисы.');
-    }
-
-    const phoneRegex = /^\+?\d{10,15}$/;
-    if (!phoneRegex.test(registerPhone)) {
-      errors.push('Телефон должен содержать только цифры и знак +.');
-    }
-
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    if (!emailRegex.test(registerEmail)) {
-      errors.push('Email должен быть в правильном формате.');
-    }
-
-    // Updated password regex for validation
-    const passwordRegex = /^(?=.*[a-zа-я])(?=.*[A-ZА-Я])(?=.*\d).{7,}$/;
-    if (!passwordRegex.test(registerPassword)) {
-      errors.push('Пароль должен содержать хотя бы 7 символов, одну строчную и одну заглавную букву, цифры .');
-    }
-
-    // Password confirmation validation
-    if (registerPassword !== registerPasswordConfirm) {
-      errors.push('Пароли не совпадают.');
-    }
-
-    // Consent validation
-    if (!registerConfirm) {
-      errors.push('Необходимо согласие на обработку данных.');
-    }
-
-    setErrorMessages(errors);
-    return errors.length === 0;
-  };
-
-  // Handle register form submission
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateRegistration()) {
-      return; // If validation fails, prevent form submission
-    }
-
-    // Clear any previous errors before making a request
-    setErrorMessages([]);
-
-    const registrationData = {
-      name: registerName,
-      phone: registerPhone,
-      email: registerEmail,
-      password: registerPassword,
-      password_confirmation: registerPasswordConfirm,  // Sending password confirmation as a separate field
-      confirm: registerConfirm ? "true" : "false", // Ensure `confirm` is sent as a string ("true" or "false")
-    };
-
-    try {
-      const response = await fetch('https://pets.сделай.site/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(registrationData),
-      });
-
-      if (response.status === 204) {
-        // Successful registration
-        alert('Регистрация прошла успешно!');
-        handleCloseModal(); // Close the modal
-      } else if (response.status === 422) {
-        // Validation error
-        const errorData = await response.json();
-        
-        // Safe check if errorData is a valid object
-        if (errorData && errorData.errors) {
-          const errorMessages = Object.values(errorData.errors).flat();
-          setErrorMessages(errorMessages);
-        } else {
-          setErrorMessages(['Неизвестная ошибка']);
-        }
-      } else {
-        throw new Error('Что-то пошло не так, попробуйте позже.');
-      }
-    } catch (error) {
-      setErrorMessages([error.message]);
-    }
-  };
-
-  // Handle login form submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    
-    // Simple client-side validation for login
-    if (!loginPhone || !loginPassword) {
-      setErrorMessages(['Телефон и пароль обязательны для ввода']);
+
+    if (!loginEmail || !loginPassword) {
+      setErrorMessages(['Email и пароль обязательны для ввода']);
       return;
     }
 
     const loginData = {
-      email: loginPhone,
+      email: loginEmail,
       password: loginPassword,
     };
 
@@ -149,27 +67,59 @@ const Header = () => {
       });
 
       if (response.status === 200) {
+        const data = await response.json();
+        const token = data.data.token;
+        localStorage.token=token;
+
+        setAuthToken(token); // Обновляем токен в глобальном контексте
+
         alert('Вход успешен!');
-        handleCloseModal(); // Close the modal on successful login
+        handleCloseModal();
+        navigate('/myAccount');
       } else {
         const errorData = await response.json();
-        
-        // Safe check if errorData is a valid object
-        if (errorData && errorData.message) {
-          setErrorMessages([errorData.message || 'Ошибка входа']);
-        } else {
-          setErrorMessages(['Неизвестная ошибка']);
-        }
+        setErrorMessages([errorData.message || 'Ошибка входа']);
       }
     } catch (error) {
       setErrorMessages([error.message]);
     }
   };
 
-  // Handle search form submission
-  const handleSearch = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    alert('Поиск по объявлениям...');
+
+    const registrationData = {
+      name: registerName,
+      phone: registerPhone,
+      email: registerEmail,
+      password: registerPassword,
+      password_confirmation: registerPasswordConfirm,
+      confirm: registerConfirm ? "true" : "false",
+    };
+
+    try {
+      const response = await fetch('https://pets.сделай.site/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(registrationData),
+      });
+
+      if (response.status === 204) {
+        setIsRegistered(true);
+      } else if (response.status === 422) {
+        const errorData = await response.json();
+        if (errorData && errorData.errors) {
+          const errorMessages = Object.values(errorData.errors).flat();
+          setErrorMessages(errorMessages);
+        }
+      } else {
+        throw new Error('Что-то пошло не так, попробуйте позже.');
+      }
+    } catch (error) {
+      setErrorMessages([error.message]);
+    }
   };
 
   return (
@@ -221,12 +171,14 @@ const Header = () => {
                 </Link>
               </li>
             </ul>
-            <Button className="btn btn-primary me-2  mb-2 mb-lg-0" onClick={handleShowModal}>
-              Вход / Регистрация
-            </Button>
+            {!authToken && (
+              <Button className="btn btn-primary me-2 mb-2 mb-lg-0" onClick={handleShowModal}>
+                Вход / Регистрация
+              </Button>
+            )}
 
             {/* Search Bar */}
-            <form className="d-flex  mb-2 mb-lg-0 " onSubmit={handleSearch}>
+            <form className="d-flex mb-2 mb-lg-0 " onSubmit={(e) => e.preventDefault()}>
               <input
                 className="form-control me-2"
                 type="search"
@@ -279,11 +231,11 @@ const Header = () => {
           {isLoginTabActive ? (
             <Form onSubmit={handleLoginSubmit}>
               <Form.Group className="mb-3">
-                <Form.Label>Телефон</Form.Label>
+                <Form.Label>Почта</Form.Label>
                 <Form.Control
-                  type="text"
-                  value={loginPhone}
-                  onChange={(e) => setLoginPhone(e.target.value)}
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
                   required
                 />
               </Form.Group>
@@ -355,9 +307,15 @@ const Header = () => {
                 checked={registerConfirm}
                 onChange={() => setRegisterConfirm(!registerConfirm)}
               />
-              <Button type="submit" className="w-100" disabled={errorMessages.length > 0}>
-                Зарегистрироваться
-              </Button>
+              {isRegistered ? (
+                <Alert variant="success" className="w-100">
+                  Регистрация успешна! Вы можете войти.
+                </Alert>
+              ) : (
+                <Button type="submit" className="w-100" disabled={errorMessages.length > 0}>
+                  Зарегистрироваться
+                </Button>
+              )}
             </Form>
           )}
         </Modal.Body>

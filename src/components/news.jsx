@@ -19,15 +19,15 @@ function News() {
         body: JSON.stringify({ email }),
       });
 
-      // if (response.status === 200) {
+       if (response.status === 204) {
         setMessage('Вы успешно подписались на новости!');
         setEmail(''); // Очистить поле ввода после успешной подписки
-      // } else if (response.status === 422) {
-      //   const data = await response.json();
-      //   setError(`Ошибка валидации: ${data.error.message}`);
-      // } else {
-      //   setError('Произошла ошибка. Попробуйте снова.');
-      // }
+       } else if (response.status === 422) {
+         const data = await response.json();
+        setError(`Ошибка валидации: ${data.error.message}`);
+     } else {
+        setError('Произошла ошибка. Попробуйте снова.');
+      }
     } 
     
   

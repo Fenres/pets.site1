@@ -1,81 +1,81 @@
-import React, { useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Alert, Button } from 'react-bootstrap';
 import './MyAkc.css'; // Подключаем CSS
 
-function MyAkc({ userData }) {
-    const [showModal, setShowModal] = useState(false);
-    const [editType, setEditType] = useState('');
-    const [newValue, setNewValue] = useState('');
+function MyAkc(props) {
 
-    // Открыть модальное окно и установить тип редактируемого поля (телефон или email)
-    const handleEditClick = (type) => {
-        setEditType(type);
-        setNewValue(userData[type]); // Установить текущее значение телефона или email
-        setShowModal(true);
+    const [editingField, setEditingField] = useState(null); // Поле, которое редактируется
+    const [editedValue, setEditedValue] = useState(''); // Новое значение поля
+    const [successMessage, setSuccessMessage] = useState(''); // Сообщения об успешных действиях
+
+    if (!props.data) {
+        return <div>Нет данных для отображения.</div>; // Проверка, если нет данных
+    }
+
+    // Функция для расчета количества дней на сайте
+    const calculateDaysOnSite = (registrationDate) => {
+        const currentDate = new Date();
+        const regDate = new Date(registrationDate);
+        const timeDiff = currentDate - regDate;
+        return Math.floor(timeDiff / (1000 * 3600 * 24)); // Количество дней
     };
 
-    // Закрыть модальное окно
-    const handleClose = () => {
-        setShowModal(false);
+    const handleEditClick = (field) => {
+        setEditingField(field);
+        setEditedValue(props.data[field]); // Используем props.data
     };
 
-    // Обновить значение телефона или email
-    const handleSave = () => {
-        if (editType === 'phone') {
-            userData.phone = newValue; // Обновляем телефон
-        } else if (editType === 'email') {
-            userData.email = newValue; // Обновляем email
-        }
-        setShowModal(false);
+    const handleSaveEdit = () => {
+        // Логика для отправки измененного значения на сервер
+        // После успешного обновления:
+        setSuccessMessage(`Поле ${editingField} успешно обновлено!`);
+        setEditingField(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingField(null); // Закрыть режим редактирования
     };
 
     return (
         <div>
-            <div className="text-center text-white bg-primary m-2">
-                <h1 className="text-center text-white bg-primary m-2">Личный кабинет</h1>
-                <h2 className="text-center text-white bg-primary m-2">Информация о пользователе</h2>
-            </div>
+            <h1 className="text-center text-white bg-primary m-2">Личный кабинет</h1>
+            <h2 className="text-center text-white bg-primary m-2">Информация о пользователе</h2>
+
             <div className="container">
-                <p><strong>Имя:</strong> {userData.name}</p>
-                <p>
-                    <strong>Телефон:</strong> {userData.phone}
-                    <button className="btn btn-primary me-2 p-1" onClick={() => handleEditClick('phone')}>Изменить</button>
-                </p>
-                <p>
-                    <strong>Email:</strong> {userData.email}
-                    <button className="btn btn-primary me-2 p-1" onClick={() => handleEditClick('email')}>Изменить</button>
-                </p>
-                <p><strong>Дата регистрации:</strong> {userData.registrationDate}</p>
-                <p><strong>Дней на сайте:</strong> {userData.daysOnSite}</p>
-                <p><strong>Количество объявлений:</strong> {userData.adsCount}</p>
-                <p><strong>Найденных животных:</strong> {userData.foundPets}</p>
-                <button id="logoutButton" className="btn btn-danger" onClick={() => {}}>Выйти</button>
+                {successMessage && <Alert variant="success">{successMessage}</Alert>}
+
+                {editingField ? (
+                    <div>
+                        <div className="mb-3">
+                            <label className="form-label">{editingField.charAt(0).toUpperCase() + editingField.slice(1)}</label>
+                            <input 
+                                type="text" 
+                                className="form-control" 
+                                value={editedValue}
+                                onChange={(e) => setEditedValue(e.target.value)}
+                            />
+                        </div>
+                        <Button variant="success" onClick={handleSaveEdit}>Сохранить</Button>
+                        <Button variant="secondary" onClick={handleCancelEdit} className="ms-2">Отмена</Button>
+                    </div>
+                ) : (
+                    <div>
+                        <p><strong>Имя:</strong> {props.data.name}</p>
+                        <p>
+                            <strong>Телефон:</strong> {props.data.phone}
+                            <Button className="btn btn-primary me-2 p-1" onClick={() => handleEditClick('phone')}>Изменить</Button>
+                        </p>
+                        <p>
+                            <strong>Email:</strong> {props.data.email}
+                            <Button className="btn btn-primary me-2 p-1" onClick={() => handleEditClick('email')}>Изменить</Button>
+                        </p>
+                        <p><strong>Дата регистрации:</strong> {props.data.registrationDate}</p>
+                        <p><strong>Дней на сайте:</strong> {calculateDaysOnSite(props.data.registrationDate)}</p>
+                        <p><strong>Количество объявлений:</strong> {props.data.ordersCount}</p>
+                        <p><strong>Найденных животных:</strong> {props.data.petsCount}</p>
+                    </div>
+                )}
             </div>
-
-            {/* Модальное окно для изменения телефона или email */}
-            <Modal show={showModal} onHide={handleClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Изменить {editType === 'phone' ? 'телефон' : 'email'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={newValue}
-                        onChange={(e) => setNewValue(e.target.value)}
-                    />
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
-                        Отмена
-                    </Button>
-                    <Button variant="primary" onClick={handleSave}>
-                        Сохранить изменения
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-
-            <br />
         </div>
     );
 }

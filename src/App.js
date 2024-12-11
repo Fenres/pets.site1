@@ -7,9 +7,14 @@ import MyAccount from "./pages/myAccount";
 import PetsAdd from "./pages/petsAdd";
 import PetsSearch from "./pages/petsSearch";
 
-function App() {
+
+import { AuthProvider } from './components/AuthContext'; // Импортируйте AuthProvider
+
+
+const App = () => {
   return (
-    <div className="w-100">
+    <AuthProvider>
+      <div className="w-100">
       <Header />
       <div >
         <Routes> 
@@ -21,7 +26,8 @@ function App() {
       </div>
       <Footer />
     </div>
+    </AuthProvider>
   );
-}
+};
 
 export default App;
