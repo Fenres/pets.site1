@@ -1,71 +1,97 @@
-import React, { useState } from 'react';
-import cat from '../png/кошка.jpg';
-import goat from '../png/коза.jpeg';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../components/AuthContext'; // Assuming you have an AuthContext for managing token
+
 import Card from './propsCard';
 import AdDetails from './adDetale'; 
+import { Button, Alert } from 'react-bootstrap';
+
+
+
 
 function FoundPets() {
-  // Данные о найденных животных (могут быть загружены с API)
-  const [pets, setPets] = useState([
-    {
-      id: 14,
-      type: 'Кошка',
-      description: 'Потерялась кошка, пушистая, серая. Любит играть, ласковая.',
-      chipNumber: 'ca-001-spb',
-      district: 'Василиостровский',
-      date: '24-03-2020',
-      src: cat
-    },
-    {
-      id: 18,
-      type: 'Коза',
-      description: 'Потерялась коза, последний раз видели в здании Московского вокзала г. Санкт-Петербург. Коза белая, пуховая.',
-      chipNumber: 'go-011-spb',
-      district: 'Центральный',
-      date: '14-03-2022',
-      src: goat
-    }
-    // Добавьте другие объекты животных при необходимости
-  ]);
-
-  const [selectedAnimal, setSelectedAnimal] = useState(null); // Для выбранного животного
+  const { authToken } = useAuth(); // Auth token for API requests
+  const [pets, setPets] = useState([]);
+  const [selectedAnimal, setSelectedAnimal] = useState(null); // For selected animal details
   const [currentPage, setCurrentPage] = useState(1);
-  const petsPerPage = 3; // Количество карточек на странице
+  const petsPerPage = 3; // Number of pets per page
+  const [errorMessages, setErrorMessages] = useState([]); // For error handling
 
-  // Индексы для пагинации
+  // Pagination logic
   const indexOfLastPet = currentPage * petsPerPage;
   const indexOfFirstPet = indexOfLastPet - petsPerPage;
   const currentPets = pets.slice(indexOfFirstPet, indexOfLastPet);
-
   const totalPages = Math.ceil(pets.length / petsPerPage);
 
-  // Функция для переключения страниц
+  useEffect(() => {
+    fetchPets();
+  }, [authToken]);
+
+  const fetchPets = async () => {
+    if (!authToken) return;
+
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", `Bearer ${authToken}`);
+
+    const requestOptions = {
+      method: 'GET',
+      headers: myHeaders,
+    };
+
+    try {
+      const response = await fetch(`https://pets.сделай.site/api/users/orders`, requestOptions);
+      const data = await response.json();
+      
+      if (response.status === 200) {
+        setPets(data.data.orders);
+      } else if (response.status === 204) {
+        setPets([]);
+      } else {
+        setErrorMessages([data.error?.message || 'Error fetching data']);
+      }
+    } catch (error) {
+      setErrorMessages([error.message]);
+    }
+  };
+
+  // Handle pagination change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Функция для открытия карточки животного
+  // Open pet details
   const openAnimalCard = (pet) => {
     setSelectedAnimal(pet);
   };
 
-  // Функция для закрытия карточки
+  // Close selected pet details
   const closeAnimalCard = () => {
     setSelectedAnimal(null);
   };
 
   return (
-    <div><h2 className="text-white bg-primary me-2 text-center">Найденные животные</h2>
+    <div>
+      <h2 className="text-white bg-primary me-2 text-center">Найденные животные</h2>
+
+      {errorMessages.length > 0 && (
+        <Alert variant="danger" className="mt-3">
+          <ul>
+            {errorMessages.map((msg, idx) => (
+              <li key={idx}>{msg}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
+
       {selectedAnimal ? (
         <AdDetails selectedAd={selectedAnimal} closeAd={closeAnimalCard} />
       ) : (
         <>
-          
           <div className="d-flex flex-wrap justify-content-center">
             {currentPets.map(pet => (
               <Card key={pet.id} pet={pet} onClick={openAnimalCard} />
             ))}
           </div>
 
-          {/* Пагинация */}
+          {/* Pagination */}
           <nav aria-label="pagination" className="m-auto">
             <ul className="pagination pagination-lg justify-content-center">
               {Array.from({ length: totalPages }, (_, index) => (

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Alert, Button } from 'react-bootstrap';
 import './MyAkc.css'; // Подключаем CSS
+import { useNavigate } from 'react-router-dom'; // Для редиректа после выхода
 
 function MyAkc(props) {
-
+    const navigate = useNavigate(); // Используем хук для навигации
     const [editingField, setEditingField] = useState(null); // Поле, которое редактируется
     const [editedValue, setEditedValue] = useState(''); // Новое значение поля
     const [successMessage, setSuccessMessage] = useState(''); // Сообщения об успешных действиях
@@ -20,11 +21,13 @@ function MyAkc(props) {
         return Math.floor(timeDiff / (1000 * 3600 * 24)); // Количество дней
     };
 
+    // Функция для редактирования поля
     const handleEditClick = (field) => {
         setEditingField(field);
         setEditedValue(props.data[field]); // Используем props.data
     };
 
+    // Функция для сохранения изменений
     const handleSaveEdit = () => {
         // Логика для отправки измененного значения на сервер
         // После успешного обновления:
@@ -32,9 +35,12 @@ function MyAkc(props) {
         setEditingField(null);
     };
 
+    // Функция для отмены редактирования
     const handleCancelEdit = () => {
         setEditingField(null); // Закрыть режим редактирования
     };
+
+    
 
     return (
         <div>
@@ -75,6 +81,8 @@ function MyAkc(props) {
                         <p><strong>Найденных животных:</strong> {props.data.petsCount}</p>
                     </div>
                 )}
+
+             
             </div>
         </div>
     );

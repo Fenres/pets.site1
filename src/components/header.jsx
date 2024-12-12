@@ -44,49 +44,54 @@ const Header = () => {
 
   const handleTabSwitch = (isLogin) => setIsLoginTabActive(isLogin);
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!loginEmail || !loginPassword) {
-      setErrorMessages(['Email и пароль обязательны для ввода']);
-      return;
+  const validateRegistrationForm = () => {
+    const errors = [];
+    
+    // Проверка имени
+    const nameRegex = /^[А-Яа-яёЁ\s\-]+$/;
+    if (!nameRegex.test(registerName)) {
+      errors.push("Имя должно содержать только кириллицу, пробелы и дефисы.");
+    }
+    
+    // Проверка телефона
+    const phoneRegex = /^\+?\d+$/;
+    if (!phoneRegex.test(registerPhone)) {
+      errors.push("Телефон должен содержать только цифры и может начинаться с символа '+'.");
+    }
+    
+    // Проверка email
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (!emailRegex.test(registerEmail)) {
+      errors.push("Неверный формат email.");
     }
 
-    const loginData = {
-      email: loginEmail,
-      password: loginPassword,
-    };
-
-    try {
-      const response = await fetch('https://pets.сделай.site/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData),
-      });
-
-      if (response.status === 200) {
-        const data = await response.json();
-        const token = data.data.token;
-        localStorage.token=token;
-
-        setAuthToken(token); // Обновляем токен в глобальном контексте
-
-        alert('Вход успешен!');
-        handleCloseModal();
-        navigate('/myAccount');
-      } else {
-        const errorData = await response.json();
-        setErrorMessages([errorData.message || 'Ошибка входа']);
-      }
-    } catch (error) {
-      setErrorMessages([error.message]);
+    // Проверка пароля
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{7,}$/;
+    if (!passwordRegex.test(registerPassword)) {
+      errors.push("Пароль должен быть не менее 7 символов, с одной цифрой, одной строчной и одной заглавной буквой.");
     }
+
+    // Проверка подтверждения пароля
+    if (registerPassword !== registerPasswordConfirm) {
+      errors.push("Пароли не совпадают.");
+    }
+
+    // Проверка согласия
+    if (!registerConfirm) {
+      errors.push("Необходимо согласие на обработку данных.");
+    }
+
+    return errors;
   };
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+
+    const errors = validateRegistrationForm();
+    if (errors.length > 0) {
+      setErrorMessages(errors);
+      return;
+    }
 
     const registrationData = {
       name: registerName,
@@ -122,6 +127,52 @@ const Header = () => {
     }
   };
 
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!loginEmail || !loginPassword) {
+      setErrorMessages(['Email и пароль обязательны для ввода']);
+      return;
+    }
+
+    const loginData = {
+      email: loginEmail,
+      password: loginPassword,
+    };
+
+    try {
+      const response = await fetch('https://pets.сделай.site/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+
+      if (response.status === 200) {
+        const data = await response.json();
+        const token = data.data.token;
+        localStorage.token = token;
+
+        setAuthToken(token); // Обновляем токен в глобальном контексте
+
+        handleCloseModal();
+        navigate('/myAccount'); // Перенаправление на личный кабинет без вывода окна с сообщением
+      } else {
+        const errorData = await response.json();
+        setErrorMessages([errorData.message || 'Ошибка входа']);
+      }
+    } catch (error) {
+      setErrorMessages([error.message]);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Убираем токен из локального хранилища
+    setAuthToken(null); // Обновляем токен в контексте
+    navigate('/'); // Перенаправляем на главную страницу
+  };
+
   return (
     <div>
       <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -141,7 +192,7 @@ const Header = () => {
             <span className="navbar-toggler-icon" />
           </button>
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav m-auto mb-2 mb-lg-0">
+            <ul className="navbar-nav m-auto mb-1 mb-lg-0">
               <li className="nav-item">
                 <Link
                   to="/"
@@ -171,13 +222,6 @@ const Header = () => {
                 </Link>
               </li>
             </ul>
-            {!authToken && (
-              <Button className="btn btn-primary me-2 mb-2 mb-lg-0" onClick={handleShowModal}>
-                Вход / Регистрация
-              </Button>
-            )}
-
-            {/* Search Bar */}
             <form className="d-flex mb-2 mb-lg-0 " onSubmit={(e) => e.preventDefault()}>
               <input
                 className="form-control me-2"
@@ -186,13 +230,21 @@ const Header = () => {
                 placeholder="Поиск"
                 aria-label="Search"
               />
-              <button className="btn btn-primary me-2">Поиск</button>
+              <button className="btn btn-primary me-2">Поиск</button> 
+              {!authToken ? (
+                <Button className="btn btn-primary me-2 mb-2 mb-lg-0" onClick={handleShowModal}>
+                  Вход / Регистрация
+                </Button>
+              ) : (
+                <Button className="btn btn-danger me-2 mb-2 mb-lg-0" onClick={handleLogout}>
+                  Выйти
+                </Button>
+              )}
             </form>
           </div>
         </div>
       </nav>
 
-      {/* Main Modal (Login/Registration) */}
       <Modal show={showModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>{isLoginTabActive ? 'Авторизация' : 'Регистрация'}</Modal.Title>
@@ -227,7 +279,6 @@ const Header = () => {
             </Alert>
           )}
 
-          {/* Login Form */}
           {isLoginTabActive ? (
             <Form onSubmit={handleLoginSubmit}>
               <Form.Group className="mb-3">
