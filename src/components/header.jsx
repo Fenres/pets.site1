@@ -170,7 +170,7 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem('token'); // Убираем токен из локального хранилища
     setAuthToken(null); // Обновляем токен в контексте
-    navigate('/'); // Перенаправляем на главную страницу
+    
   };
 
   return (

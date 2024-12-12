@@ -8,6 +8,7 @@ function MyAkc(props) {
     const [editingField, setEditingField] = useState(null); // Поле, которое редактируется
     const [editedValue, setEditedValue] = useState(''); // Новое значение поля
     const [successMessage, setSuccessMessage] = useState(''); // Сообщения об успешных действиях
+    const [errorMessage, setErrorMessage] = useState(''); // Сообщение об ошибке
 
     if (!props.data) {
         return <div>Нет данных для отображения.</div>; // Проверка, если нет данных
@@ -27,20 +28,58 @@ function MyAkc(props) {
         setEditedValue(props.data[field]); // Используем props.data
     };
 
-    // Функция для сохранения изменений
-    const handleSaveEdit = () => {
-        // Логика для отправки измененного значения на сервер
-        // После успешного обновления:
-        setSuccessMessage(`Поле ${editingField} успешно обновлено!`);
-        setEditingField(null);
+    // Функция для отправки обновленных данных на сервер
+    const handleSaveEdit = async () => {
+        if (editingField === 'phone' && !editedValue) {
+            setErrorMessage("Телефон не может быть пустым");
+            return;
+        }
+        if (editingField === 'email' && !editedValue) {
+            setErrorMessage("Email не может быть пустым");
+            return;
+        }
+
+        if (editingField === 'email' && !/\S+@\S+\.\S+/.test(editedValue)) {
+            setErrorMessage("Введите правильный адрес электронной почты");
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token'); // Получаем токен из localStorage
+            const url = editingField === 'phone' 
+                ? 'https://pets.сделай.site/api/users/phone' 
+                : 'https://pets.сделай.site/api/users/email';
+
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    [editingField]: editedValue, // Изменяем соответствующее поле
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.status === 200) {
+                setSuccessMessage(`${editingField.charAt(0).toUpperCase() + editingField.slice(1)} успешно обновлено!`);
+                setEditingField(null); // Закрыть режим редактирования
+            } else if (response.status === 401) {
+                setErrorMessage("Не авторизован");
+            } else if (response.status === 422) {
+                setErrorMessage(result.error?.message || "Ошибка валидации");
+            }
+        } catch (error) {
+            setErrorMessage("Ошибка при обновлении данных. Пожалуйста, попробуйте позже.");
+        }
     };
 
     // Функция для отмены редактирования
     const handleCancelEdit = () => {
         setEditingField(null); // Закрыть режим редактирования
     };
-
-    
 
     return (
         <div>
@@ -49,6 +88,7 @@ function MyAkc(props) {
 
             <div className="container">
                 {successMessage && <Alert variant="success">{successMessage}</Alert>}
+                {errorMessage && <Alert variant="danger">{errorMessage}</Alert>}
 
                 {editingField ? (
                     <div>
@@ -73,7 +113,7 @@ function MyAkc(props) {
                         </p>
                         <p>
                             <strong>Email:</strong> {props.data.email}
-                            <Button className="btn btn-primary me-2 p-1" onClick={() => handleEditClick('email')}>Изменить</Button>
+                            <Button className="btn btn-primary me-3 p-1" onClick={() => handleEditClick('email')}>Изменить</Button>
                         </p>
                         <p><strong>Дата регистрации:</strong> {props.data.registrationDate}</p>
                         <p><strong>Дней на сайте:</strong> {calculateDaysOnSite(props.data.registrationDate)}</p>
@@ -81,8 +121,6 @@ function MyAkc(props) {
                         <p><strong>Найденных животных:</strong> {props.data.petsCount}</p>
                     </div>
                 )}
-
-             
             </div>
         </div>
     );

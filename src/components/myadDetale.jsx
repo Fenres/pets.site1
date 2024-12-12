@@ -23,7 +23,6 @@ const AdDetails = ({ selectedAd, closeAd }) => {
                         <p><strong>ID:</strong> {selectedAd.id}</p>
                         <p><strong>Имя:</strong> {selectedAd.name}</p>
                         <p><strong>Телефон:</strong> {selectedAd.phone}</p>
-                        <p><strong>Почта:</strong> {selectedAd.email || "почта не указана"}</p>
                         <p><strong>Описание:</strong> {selectedAd.description}</p>
                         <p><strong>Номер чипа:</strong> {selectedAd.mark}</p>
                         <p><strong>Район:</strong> {selectedAd.district}</p>

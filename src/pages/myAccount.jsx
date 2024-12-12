@@ -11,10 +11,14 @@ function MyAccount() {
     const [errorMessages, setErrorMessages] = useState([]); // To store error messages
     const { authToken, setAuthToken } = useAuth(); // Get authToken from context
     const navigate = useNavigate();
+    const [pets, setPets] = useState([]); // Store pets data
+    const [currentPage, setCurrentPage] = useState(1); // Pagination state
+    const petsPerPage = 3; // Number of pets per page
 
     useEffect(() => {
         if (authToken) {
             loadUserData(); // Load user data if token exists
+            fetchPets(); // Fetch pets data if token exists
         }
     }, [authToken]);
 
@@ -38,7 +42,34 @@ function MyAccount() {
         }
     };
 
-    // Login form submission
+
+    const fetchPets = async () => {
+        if (!authToken) return;
+
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+        myHeaders.append("Authorization", `Bearer ${authToken}`);
+
+        const requestOptions = {
+            method: 'GET',
+            headers: myHeaders,
+        };
+
+        try {
+            const response = await fetch(`https://pets.сделай.site/api/users/orders`, requestOptions);
+            const data = await response.json();
+            
+            if (response.status === 200) {
+                setPets(data.data.orders); 
+            } else {
+                setErrorMessages([data.error?.message || 'Error fetching pets data']);
+            }
+        } catch (error) {
+            setErrorMessages([error.message]);
+        }
+    };
+
+ 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         const loginData = {
@@ -64,6 +95,7 @@ function MyAccount() {
                 localStorage.setItem('token', token);
                 setAuthToken(token);
                 loadUserData();
+                fetchPets();
             } else {
                 const errorData = await response.json();
                 setErrorMessages([errorData.message || 'Ошибка входа']);
@@ -206,11 +238,11 @@ function MyAccount() {
         );
     }
 
-    // If logged in, show user dashboard
+    // If logged in, show user dashboard with FoundPets
     return (
         <div>
             <MyAkc data={user} />
-            <FoundPets />
+            <FoundPets pets={pets} currentPage={currentPage} setCurrentPage={setCurrentPage} />
         </div>
     );
 }

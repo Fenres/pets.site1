@@ -16,7 +16,7 @@ const Searchforads = () => {
   useEffect(() => {
     const fetchPetsData = async () => {
         try {
-            const response = await fetch('https://pets.сделай.site/api/pets');
+            const response = await fetch('https://pets.сделай.site/api/search/order');
             const data = await response.json();
             
             // Debugging - log the data to ensure it's correct
