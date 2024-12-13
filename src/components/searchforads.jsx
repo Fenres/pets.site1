@@ -10,7 +10,7 @@ const Searchforads = () => {
   const [isLoading, setIsLoading] = useState(true); // Loading state
   const [selectedAd, setSelectedAd] = useState(null); // For the selected ad
   const [currentPage, setCurrentPage] = useState(1);
-  const adsPerPage = 10;
+  const adsPerPage = 9;
 
   // Fetch pets data from API
   const fetchPetsData = async (district, kind) => {

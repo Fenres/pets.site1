@@ -25,7 +25,7 @@ const AdDetails = ({ selectedAd, closeAd }) => {
                         <p><strong>Телефон:</strong> {selectedAd.phone}</p>
                         <p><strong>Почта:</strong> {selectedAd.email || "почта не указана"}</p>
                         <p><strong>Описание:</strong> {selectedAd.description}</p>
-                        <p><strong>Номер чипа:</strong> {selectedAd.mark}</p>
+                        <p><strong>Номер чипа:</strong> {selectedAd.mark || "Номер чипа не указан"}</p>
                         <p><strong>Район:</strong> {selectedAd.district}</p>
                         <p><strong>Дата:</strong> {selectedAd.date}</p>
                         <button className="btn btn-primary" onClick={closeAd}>Назад к списку</button>

@@ -13,7 +13,7 @@ const Card = (props) => {
                 <h5 className="card-title">{props.pet.kind}</h5>  {/* Display the kind of animal */}
                 <p className="card-text"><strong>ID:</strong> {props.pet.id}</p>
                 <p className="card-text"><strong>Описание:</strong> {props.pet.description}</p>
-                <p className="card-text"><strong>Номер чипа:</strong> {props.pet.mark}</p>
+                <p className="card-text"><strong>Номер чипа:</strong> {props.pet.mark || "Номер чипа не указан"}</p>
                 <p className="card-text"><strong>Район:</strong> {props.pet.district}</p>
                 <p className="card-text"><strong>Дата:</strong> {props.pet.date}</p>
             </div>

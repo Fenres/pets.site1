@@ -294,7 +294,7 @@ function PetsAddForm() {
           </div>
           <div className="mb-3">
             
-  <label htmlFor="mark" className="form-label">Марка: (приналичии)</label>
+  <label htmlFor="mark" className="form-label">Чип: (при наличии)</label>
   <input
     type="text"
     className="form-control"
