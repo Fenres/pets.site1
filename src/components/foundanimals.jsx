@@ -4,7 +4,7 @@ import AdDetails from './myadDetale';
 import { Alert } from 'react-bootstrap';
 
 function FoundPets({ pets, currentPage, setCurrentPage }) {
-    const [selectedAd, setSelectedAd] = useState(null); // Состояние для выбранного объявления
+    const [selectedAnimal, setSelectedAnimal] = useState(null); // State for selected animal card
     const petsPerPage = 3;
     const totalPages = Math.ceil(pets.length / petsPerPage);
 
@@ -16,13 +16,19 @@ function FoundPets({ pets, currentPage, setCurrentPage }) {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     // Открытие объявления
-    const handleClickPet = (pet) => {
-        setSelectedAd(pet);
+    const openAnimalCard = async (animalId) => {
+        try {
+            const response = await fetch(`https://pets.сделай.site/api/pets/${animalId}`);
+            const data = await response.json();
+            setSelectedAnimal(data.data.pet); // Assuming 'data.data.pet' contains the detailed pet data
+        } catch (error) {
+            console.error('Error fetching detailed pet data:', error);
+        }
     };
 
-    // Закрытие объявления
-    const closeAd = () => {
-        setSelectedAd(null);
+    // Function to close the animal card details
+    const closeAnimalCard = () => {
+        setSelectedAnimal(null);
     };
 
     return (
@@ -35,45 +41,41 @@ function FoundPets({ pets, currentPage, setCurrentPage }) {
                 </Alert>
             )}
 
-         
-{selectedAd ? (
-    <AdDetails
-        selectedAd={selectedAd}
-        closeAd={closeAd}
-        onEdit={(pet) => {
-            // Логика редактирования
-            console.log('Редактировать:', pet);
-            // Здесь можно отобразить форму для редактирования или выполнить другое действие
-        }}
-    />
-) : (
-    <div>
-    <div className="d-flex flex-wrap justify-content-center">
-        {currentPets.map(pet => (
-            <Card key={pet.id} pet={pet} onClick={() => handleClickPet(pet)} />
-        ))}
-    </div> 
-    <nav aria-label="pagination" className="m-auto">
-                <ul className="pagination pagination-lg justify-content-center">
-                    {Array.from({ length: totalPages }, (_, index) => (
-                        <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
-                            <a
-                                className="page-link"
-                                href="#"
-                                onClick={() => paginate(index + 1)}
-                            >
-                                {index + 1}
-                            </a>
-                        </li>
-                    ))}
-                </ul>
-            </nav>
-            </div>
-)}
-
-
-           
-           
+            {selectedAnimal ? (
+                <AdDetails
+                    key={selectedAnimal.id}
+                    selectedAd={selectedAnimal}
+                    closeAd={closeAnimalCard}
+                    onEdit={(pet) => {
+                        // Логика редактирования
+                        console.log('Редактировать:', pet);
+                        // Здесь можно отобразить форму для редактирования или выполнить другое действие
+                    }}
+                />
+            ) : (
+                <div>
+                    <div className="d-flex flex-wrap justify-content-center">
+                        {currentPets.map(pet => (
+                            <Card key={pet.id} pet={pet} onClick={() => openAnimalCard(pet.id)} />
+                        ))}
+                    </div>
+                    <nav aria-label="pagination" className="m-auto">
+                        <ul className="pagination pagination-lg justify-content-center">
+                            {Array.from({ length: totalPages }, (_, index) => (
+                                <li key={index} className={`page-item ${currentPage === index + 1 ? 'active' : ''}`}>
+                                    <a
+                                        className="page-link"
+                                        href="#"
+                                        onClick={() => paginate(index + 1)}
+                                    >
+                                        {index + 1}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </nav>
+                </div>
+            )}
         </div>
     );
 }
