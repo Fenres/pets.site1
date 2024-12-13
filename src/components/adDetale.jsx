@@ -1,22 +1,44 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const AdDetails = ({ selectedAd, closeAd }) => {
+
+    // Log the selectedAd object to inspect the data
+    useEffect(() => {
+        if (selectedAd) {
+            console.log('Selected Ad:', selectedAd); // Log the full selectedAd
+            console.log('Photos:', [selectedAd.photos1, selectedAd.photos2, selectedAd.photos3]); // Log the photos
+        }
+    }, [selectedAd]);
+
+    // Convert individual photo fields into an array
+    const photos = [selectedAd.photos1, selectedAd.photos2, selectedAd.photos3].filter(photo => photo); // Filter out null or undefined photos
+
     return (
         <div>
             <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '45vh' }}>
                 <div className="card-details d-flex flex-wrap align-items-center border p-2" style={{ width: '90%', maxWidth: '1200px', height: 'auto' }}>
                     <div className="image-container" style={{ width: '100%', maxWidth: '600px' }}>
-                        <img
-                            src={`https://pets.сделай.site${selectedAd.photos}`}  // Assuming `photos` contains relative URL
-                            alt={`рисунок ${selectedAd.kind}`}
-                            style={{
-                                height: 'auto',
-                                width: '100%',
-                                objectFit: 'contain',  // Updated to 'contain' to prevent cropping
-                                maxHeight: '400px',
-                            }}
-                            className="animal-image"
-                        />
+                        {photos.length > 0 ? (
+                            <div className="d-flex flex-wrap justify-content-center gap-2">
+                                {photos.map((photo, index) => (
+                                    <img
+                                        key={index}
+                                        src={`https://pets.сделай.site${photo}`}  // Assuming `photo` contains a relative URL
+                                        alt={`Изображение ${index + 1}`}
+                                        style={{
+                                            height: 'auto',
+                                            width: '100%',
+                                            objectFit: 'contain',
+                                            maxHeight: '400px',
+                                            maxWidth: '100%',
+                                        }}
+                                        className="animal-image"
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <p>Фото отсутствуют</p>
+                        )}
                     </div>
                     <div className="text-container ms-4 mt-4 mt-md-0" style={{ flex: '1 1 auto' }}>
                         <h5>{selectedAd.kind}</h5>

@@ -142,6 +142,7 @@ function PetsAddForm() {
     if (formData.photos2) formDataToSubmit.append('photos2', formData.photos2[0]);
     if (formData.photos3) formDataToSubmit.append('photos3', formData.photos3[0]);
 
+    console.log("Data being sent to the server: ", formDataToSubmit);
     // Submit the form
     try {
       const petResponse = await fetch('https://pets.сделай.site/api/pets', {
@@ -153,6 +154,7 @@ function PetsAddForm() {
       });
 
       const result = await petResponse.json();
+      console.log("Response from the server: ", result);
       if (petResponse.status === 200) {
         setSuccessMessage("Объявление успешно добавлено!");
         setErrorMessage('');

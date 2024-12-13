@@ -35,13 +35,15 @@ function MyAccount() {
         try {
             const response = await fetch("https://pets.сделай.site/api/users", requestOptions);
             const result = await response.json();
+            
+            console.log("User Data:", result); // Log the user data to the console
+
             setUser(result);
         } catch (error) {
             console.error("Error fetching user data: ", error);
             setErrorMessages(["Не удалось загрузить данные пользователя. Пожалуйста, попробуйте позже."]);
         }
     };
-
 
     const fetchPets = async () => {
         if (!authToken) return;
@@ -59,6 +61,8 @@ function MyAccount() {
             const response = await fetch(`https://pets.сделай.site/api/users/orders`, requestOptions);
             const data = await response.json();
             
+            console.log("Pets Data:", data); // Log the pets data to the console
+
             if (response.status === 200) {
                 setPets(data.data.orders); 
             } else {
@@ -69,7 +73,6 @@ function MyAccount() {
         }
     };
 
- 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         const loginData = {
