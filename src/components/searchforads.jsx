@@ -3,35 +3,40 @@ import Card from './propsCard';
 import AdDetails from './adDetale';
 
 const Searchforads = () => {
-  const [pets, setPets] = useState([]); // To store all the pets
-  const [filteredAds, setFilteredAds] = useState([]); // To store filtered pets
-  const [regionInput, setRegionInput] = useState(""); // Region input
-  const [animalTypeInput, setAnimalTypeInput] = useState(""); // Animal type input
-  const [isLoading, setIsLoading] = useState(true); // Loading state
-  const [selectedAd, setSelectedAd] = useState(null); // For the selected ad
+  const [pets, setPets] = useState([]);
+  const [filteredAds, setFilteredAds] = useState([]);
+  const [regionInput, setRegionInput] = useState("");
+  const [animalTypeInput, setAnimalTypeInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedAd, setSelectedAd] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const adsPerPage = 9;
 
   // Функция для получения данных с сервера
   const fetchPetsData = async (district, kind) => {
     setIsLoading(true);
+    setError(null); // Сброс ошибки перед новым запросом
+
     try {
-      // Подготовка URL без кодирования
-      const requestUrl = `/api/search/order/?district=${district || ""}&kind=${kind || ""}`;
+      // Формирование URL запроса
+      const requestUrl = `/api/search/?district=${encodeURIComponent(district)}&kind=${encodeURIComponent(kind)}`;
       console.log('Запрос отправлен на:', requestUrl);
 
+      // Отправка запроса на сервер
       const response = await fetch(`https://pets.xn--80ahdri7a.site${requestUrl}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // если на сервере требуется передача cookies
       });
 
-      // Проверка ответа
       if (!response.ok) {
         throw new Error(`Ошибка запроса: ${response.statusText}`);
       }
 
+      // Получение данных
       const data = await response.json();
       if (data.data && data.data.orders) {
         setPets(data.data.orders);
@@ -41,7 +46,7 @@ const Searchforads = () => {
       }
     } catch (error) {
       console.error('Ошибка при запросе данных:', error);
-      setFilteredAds([]);
+      setError('Произошла ошибка при получении данных. Попробуйте позже.');
     } finally {
       setIsLoading(false);
     }
@@ -109,6 +114,8 @@ const Searchforads = () => {
             <div className="d-flex flex-wrap justify-content-center">
               {isLoading ? (
                 <p className="text-center" style={{ height: '570px' }}>Загрузка объявлений...</p>
+              ) : error ? (
+                <p className="text-center" style={{ height: '570px', color: 'red' }}>{error}</p>
               ) : filteredAds.length === 0 ? (
                 <p className="text-center" style={{ height: '570px' }}>Объявлений не найдено.</p>
               ) : (
