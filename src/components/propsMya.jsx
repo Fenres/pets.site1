@@ -117,8 +117,8 @@ function MyAkc(props) {
                         </p>
                         <p><strong>Дата регистрации:</strong> {props.data.registrationDate}</p>
                         <p><strong>Дней на сайте:</strong> {calculateDaysOnSite(props.data.registrationDate)}</p>
-                        <p><strong>Количество объявлений:</strong> {props.data.ordersCount}</p>
-                        <p><strong>Найденных животных:</strong> {props.data.petsCount}</p>
+                        <p><strong>Количество объявлений:</strong> {props.data.countOrder}</p>
+                        <p><strong>Найденных животных:</strong> {props.data.countPets}</p>
                     </div>
                 )}
             </div>

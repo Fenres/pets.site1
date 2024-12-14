@@ -12,47 +12,52 @@ const Searchforads = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const adsPerPage = 9;
 
-  // Fetch pets data from API
+  // Функция для получения данных с сервера
   const fetchPetsData = async (district, kind) => {
     setIsLoading(true);
     try {
-      // URL encoding the parameters to ensure proper handling of non-Latin characters
-      const query = new URLSearchParams();
-      if (district) query.append('district', encodeURIComponent(district)); // Ensure encoding
-      if (kind) query.append('kind', encodeURIComponent(kind)); // Ensure encoding
+      // Подготовка URL без кодирования
+      const requestUrl = `/api/search/order/?district=${district || ""}&kind=${kind || ""}`;
+      console.log('Запрос отправлен на:', requestUrl);
 
-      
-      // Log the request URL and parameters
-      console.log("Fetching data from API with URL:",  `https://pets.сделай.site/api/search/order/?${query.toString()}`);
+      const response = await fetch(`https://pets.xn--80ahdri7a.site${requestUrl}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      const response = await fetch( `https://pets.сделай.site/api/search/order/?${query.toString()}`);
+      // Проверка ответа
+      if (!response.ok) {
+        throw new Error(`Ошибка запроса: ${response.statusText}`);
+      }
+
       const data = await response.json();
-
-      // Log the API response
-      console.log("API response:", data);
-
       if (data.data && data.data.orders) {
-        setPets(data.data.orders);  // Store all pets
-        setFilteredAds(data.data.orders);  // Set filtered ads to all initially
+        setPets(data.data.orders);
+        setFilteredAds(data.data.orders);
       } else {
-        setFilteredAds([]); // If no data is returned, show empty
+        setFilteredAds([]);
       }
     } catch (error) {
-      console.error('Error fetching pet data:', error); // Log any errors
+      console.error('Ошибка при запросе данных:', error);
       setFilteredAds([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Function to handle search when the button is clicked
+  // Функция для поиска объявлений
   const searchAds = () => {
-    console.log('Search initiated with Region:', regionInput, 'Kind:', animalTypeInput);
-    fetchPetsData(regionInput, animalTypeInput); // Fetch data based on inputs
-    setCurrentPage(1); // Reset page to first page after search
+    if (!regionInput && !animalTypeInput) {
+      alert('Пожалуйста, введите хотя бы один параметр для поиска.');
+      return;
+    }
+    fetchPetsData(regionInput, animalTypeInput); // Отправка данных на сервер
+    setCurrentPage(1); // Сброс страницы на первую
   };
 
-  // Pagination logic
+  // Логика пагинации
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const indexOfLastAd = currentPage * adsPerPage;
@@ -61,19 +66,19 @@ const Searchforads = () => {
 
   const totalPages = Math.ceil(filteredAds.length / adsPerPage);
 
-  // Function to close the selected ad
+  // Функция для закрытия выбранного объявления
   const closeAd = () => {
     setSelectedAd(null);
   };
 
-  // Function to select a particular ad
+  // Функция для выбора объявления
   const selectAd = (ad) => {
     setSelectedAd(ad);
   };
 
   return (
     <div>
-      {/* Search panel */}
+      {/* Панель поиска */}
       <div className="search-box text-center text-white bg-primary me-2 p-2">
         <h3>Поиск</h3>
         <div className="d-flex flex-wrap justify-content-center">
@@ -95,28 +100,29 @@ const Searchforads = () => {
         </div>
       </div>
 
-      {/* Main content */}
+      {/* Основной контент */}
       <div>
         {selectedAd ? (
-          <AdDetails selectedAd={selectedAd} closeAd={closeAd} /> // Pass the selected ad to AdDetails
+          <AdDetails key={selectedAd.id} selectedAd={selectedAd} closeAd={closeAd} />
         ) : (
           <>
-            {/* List of ads */}
             <div className="d-flex flex-wrap justify-content-center">
-              {filteredAds.length === 0 ? (
+              {isLoading ? (
+                <p className="text-center" style={{ height: '570px' }}>Загрузка объявлений...</p>
+              ) : filteredAds.length === 0 ? (
                 <p className="text-center" style={{ height: '570px' }}>Объявлений не найдено.</p>
               ) : (
                 currentAds.map((pet) => (
                   <Card
                     key={pet.id}
                     pet={pet}
-                    onClick={() => selectAd(pet)}  // Pass the selectAd function to Card component
+                    onClick={() => selectAd(pet)}
                   />
                 ))
               )}
             </div>
 
-            {/* Pagination */}
+            {/* Пагинация */}
             {filteredAds.length > 0 && (
               <nav aria-label="pagination" className="m-auto">
                 <ul className="pagination pagination-lg justify-content-center">
